@@ -21,6 +21,7 @@ INSERT INTO table(field0, field1, field2, field3) VALUES(?,?,?,?);
 # 使用要求
 * Xcode 7.3
 * Only support [C]
+
 # 注意
 * 目前实现了`SELECT`，`UPDATE`，`DELETE`，`INSERT INTO`的简单用法。
 * 高级约束未实现。
