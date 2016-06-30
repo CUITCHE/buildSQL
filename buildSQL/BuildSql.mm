@@ -116,18 +116,6 @@ BuildSql& BuildSql::values()
     return *this;
 }
 
-BuildSql& BuildSql::And(NSString *feild)
-{
-    [[d->sql append:@" AND "] append:feild];
-    return *this;
-}
-
-BuildSql& BuildSql::Or(NSString *feild)
-{
-    [[d->sql append:@" OR "] append:feild];
-    return *this;
-}
-
 BuildSql& BuildSql::scopes()
 {
     [d->sql appendString:@"("];
@@ -250,6 +238,18 @@ BuildSql& BuildSql::lessThanOrEqualtTo(id value)
 BuildSql& BuildSql::like(NSString *value)
 {
     [[d->sql append:@" LIKE "] appendString:value];
+    return *this;
+}
+
+BuildSql& BuildSql::And(NSString *feild)
+{
+    [[d->sql append:@" AND "] append:feild];
+    return *this;
+}
+
+BuildSql& BuildSql::Or(NSString *feild)
+{
+    [[d->sql append:@" OR "] append:feild];
     return *this;
 }
 

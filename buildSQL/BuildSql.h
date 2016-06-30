@@ -41,11 +41,8 @@ public:
     BuildSql& insertInto(NSString *table);
     BuildSql& values(); // 如果本条sql使用了insert，那么将会自动插入与insert相同数量的placeholder
 
-    BuildSql& And(NSString *feild); // like and
-    BuildSql& Or(NSString *feild);  // like or
-
-    BuildSql& scopes();
-    BuildSql& scopee();
+    BuildSql& scopes(); // '('开始标记
+    BuildSql& scopee(); // ')'结束标记
 
     BuildSql& value(NSString *value);
 
@@ -62,6 +59,8 @@ public:
     BuildSql& lessThan(id value);
     BuildSql& lessThanOrEqualtTo(id value);
     BuildSql& like(NSString *value);
+    BuildSql& And(NSString *feild); // like and
+    BuildSql& Or(NSString *feild);  // like or
 
 #pragma mark - constraint
     BuildSql& nonull();
