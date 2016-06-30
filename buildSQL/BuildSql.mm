@@ -97,7 +97,7 @@ BuildSql& BuildSql::insertInto(NSString *table)
     return *this;
 }
 
-BuildSql& BuildSql::values(NSString *placeholder/* = @"?"*/)
+BuildSql& BuildSql::values()
 {
     do {
         if (!d->inserting) {
@@ -106,9 +106,9 @@ BuildSql& BuildSql::values(NSString *placeholder/* = @"?"*/)
         }
         NSCAssert(d->insertCount, @"SQL: no matched number of placeholder");
         this->scopee();
-        [[d->sql append:@" VALUES("] append:placeholder];
+        [[d->sql append:@" VALUES("] append:d->placeholder];
         while (--d->insertCount) {
-            [[d->sql append:@","] append:placeholder];
+            [[d->sql append:@","] append:d->placeholder];
         }
         [d->sql append:@")"];
         this->end();
@@ -163,7 +163,13 @@ NSString* BuildSql::sql() const
 BuildSql& BuildSql::equalTo(id value)
 {
     do {
-        [d->sql appendFormat:@"=%@",value];
+        if ([value isKindOfClass:[NSNumber class]]) {
+            [d->sql appendFormat:@"=%@",value];
+        } else if ([value isKindOfClass:[NSString class]]) {
+            [d->sql appendFormat:@"='%@'",value];
+        } else {
+            NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
+        }
     } while (0);
     return *this;
 }
@@ -171,7 +177,13 @@ BuildSql& BuildSql::equalTo(id value)
 BuildSql& BuildSql::notEqualTo(id value)
 {
     do {
-        [d->sql appendFormat:@"<>%@", value];
+        if ([value isKindOfClass:[NSNumber class]]) {
+            [d->sql appendFormat:@"<>%@",value];
+        } else if ([value isKindOfClass:[NSString class]]) {
+            [d->sql appendFormat:@"<>'%@'",value];
+        } else {
+            NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
+        }
     } while (0);
     return *this;
 }
@@ -179,7 +191,13 @@ BuildSql& BuildSql::notEqualTo(id value)
 BuildSql& BuildSql::greaterThan(id value)
 {
     do {
-        [d->sql appendFormat:@">%@", value];
+        if ([value isKindOfClass:[NSNumber class]]) {
+            [d->sql appendFormat:@">%@",value];
+        } else if ([value isKindOfClass:[NSString class]]) {
+            [d->sql appendFormat:@">'%@'",value];
+        } else {
+            NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
+        }
     } while (0);
     return *this;
 }
@@ -187,7 +205,13 @@ BuildSql& BuildSql::greaterThan(id value)
 BuildSql& BuildSql::greaterThanOrEqualTo(id value)
 {
     do {
-        [d->sql appendFormat:@">=%@", value];
+        if ([value isKindOfClass:[NSNumber class]]) {
+            [d->sql appendFormat:@">=%@",value];
+        } else if ([value isKindOfClass:[NSString class]]) {
+            [d->sql appendFormat:@">='%@'",value];
+        } else {
+            NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
+        }
     } while (0);
     return *this;
 }
@@ -195,7 +219,13 @@ BuildSql& BuildSql::greaterThanOrEqualTo(id value)
 BuildSql& BuildSql::lessThan(id value)
 {
     do {
-        [d->sql appendFormat:@"<%@", value];
+        if ([value isKindOfClass:[NSNumber class]]) {
+            [d->sql appendFormat:@"<%@",value];
+        } else if ([value isKindOfClass:[NSString class]]) {
+            [d->sql appendFormat:@"<'%@'",value];
+        } else {
+            NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
+        }
     } while (0);
     return *this;
 }
@@ -203,7 +233,13 @@ BuildSql& BuildSql::lessThan(id value)
 BuildSql& BuildSql::lessThanOrEqualtTo(id value)
 {
     do {
-        [d->sql appendFormat:@"<=%@", value];
+        if ([value isKindOfClass:[NSNumber class]]) {
+            [d->sql appendFormat:@"<=%@",value];
+        } else if ([value isKindOfClass:[NSString class]]) {
+            [d->sql appendFormat:@"<='%@'",value];
+        } else {
+            NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
+        }
     } while (0);
     return *this;
 }
@@ -214,6 +250,15 @@ BuildSql& BuildSql::field_impl(NSString *field, bool hasNext)
     if (d->inserting) {
         ++d->insertCount;
     }
+    if (hasNext) {
+        [d->sql appendString:@", "];
+    }
+    return *this;
+}
+
+BuildSql& BuildSql::fieldPh_impl(NSString *field, bool hasNext)
+{
+    [[d->sql append:field] appendString:@"=?"];
     if (hasNext) {
         [d->sql appendString:@", "];
     }

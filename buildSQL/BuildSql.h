@@ -19,6 +19,8 @@ public:
 
     template<typename... Args>
     BuildSql& field(NSString *field, Args... args);
+    template<typename... Args>
+    BuildSql& fieldPh(NSString *field, Args... args);
 
     template<typename... Args>
     BuildSql& select(Args... args);
@@ -30,7 +32,7 @@ public:
     BuildSql& update(NSString *table);
 
     BuildSql& insertInto(NSString *table);
-    BuildSql& values(NSString *placeholder = @"?"); // 如果本条sql使用了insert，那么将会自动插入与insert相同数量的placeholder
+    BuildSql& values(); // 如果本条sql使用了insert，那么将会自动插入与insert相同数量的placeholder
 
     BuildSql& And(NSString *feild); // like and
     BuildSql& Or(NSString *feild);  // like or
@@ -65,6 +67,9 @@ protected:
     BuildSql& field(){return *this;}
     BuildSql& field_impl(NSString *field, bool hasNext);
 
+    BuildSql& fieldPh(){return *this;}
+    BuildSql& fieldPh_impl(NSString *field, bool hasNext);
+
     BuildSql& select_extend(){return *this;}
     BuildSql& select_impl(NSString *field, bool hasNext);
     template <typename... Args>
@@ -79,6 +84,13 @@ BuildSql& BuildSql::field(NSString *f, Args... args)
 {
     field_impl(f, sizeof...(args) > 0);
     return field(args...);
+}
+
+template <typename... Args>
+BuildSql& BuildSql::fieldPh(NSString *f, Args... args)
+{
+    fieldPh_impl(f, sizeof...(args) > 0);
+    return fieldPh(args...);
 }
 
 template <typename... Args>
