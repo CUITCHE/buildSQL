@@ -48,7 +48,6 @@ public:
     BuildSql& scopee();
 
     BuildSql& value(NSString *value);
-    BuildSql& placeholder();
 
     BuildSql& orderBy(NSString *field, Order order = ASC);
 
@@ -62,6 +61,7 @@ public:
     BuildSql& greaterThanOrEqualTo(id value);
     BuildSql& lessThan(id value);
     BuildSql& lessThanOrEqualtTo(id value);
+    BuildSql& like(NSString *value);
 
 #pragma mark - constraint
     BuildSql& nonull();

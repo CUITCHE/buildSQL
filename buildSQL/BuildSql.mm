@@ -147,12 +147,6 @@ BuildSql& BuildSql::value(NSString *value)
     return *this;
 }
 
-BuildSql& BuildSql::placeholder()
-{
-    [d->sql appendString:d->placeholder];
-    return *this;
-}
-
 BuildSql& BuildSql::orderBy(NSString *field, Order order/* = ASC*/)
 {
     [[d->sql append:@" ORDER BY "] appendString:field];
@@ -250,6 +244,12 @@ BuildSql& BuildSql::lessThanOrEqualtTo(id value)
             NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
         }
     } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::like(NSString *value)
+{
+    [[d->sql append:@" LIKE "] appendString:value];
     return *this;
 }
 
