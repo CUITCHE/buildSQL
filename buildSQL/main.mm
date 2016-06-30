@@ -23,6 +23,9 @@ int main(int argc, const char * argv[]) {
         sqlBuilder.update(@"table").fieldPh(@"field0", @"field1", @"field2", @"field3").where(@"name").equalTo(@"buildSql").end();
         printf("%s\n", sqlBuilder.sql().UTF8String);
 
+        sqlBuilder.reset();
+        sqlBuilder.Delete(@"table").where(@"id").greaterThan(@1001).Or(@"id").lessThanOrEqualtTo(@2001).end();
+        printf("%s\n", sqlBuilder.sql().UTF8String);
     }
     return 0;
 }

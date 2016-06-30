@@ -59,14 +59,14 @@ BuildSql& BuildSql::where(NSString *field)
     return *this;
 }
 
-BuildSql& BuildSql::Delete()
+BuildSql& BuildSql::Delete(NSString *table)
 {
     do {
         if (d->sql.length) {
             NSCAssert(NO, @"SQL: sql syntax error.");
             break;
         }
-        [d->sql appendString:@"DELETE "];
+        [[d->sql append:@"DELETE FROM "] appendString:table];
     } while (0);
     return *this;
 }

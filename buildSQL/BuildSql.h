@@ -28,7 +28,7 @@ public:
     BuildSql& from(NSString *table);
     BuildSql& where(NSString *field);
 
-    BuildSql& Delete();
+    BuildSql& Delete(NSString *table);
     BuildSql& update(NSString *table);
 
     BuildSql& insertInto(NSString *table);

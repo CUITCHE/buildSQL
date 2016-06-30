@@ -9,14 +9,25 @@
 BuildSql sqlBuilder;
 sqlBuilder.select(@"field0", @"field1", @"field2").from(@"table").where(@"id").equalTo(@(1)).And(@"type").lessThan(@(9)).end();
 printf("%s\n", sqlBuilder.sql().UTF8String);
+
 sqlBuilder.reset();
 sqlBuilder.insertInto(@"table").field(@"field0", @"field1", @"field2", @"field3").values();
+printf("%s\n", sqlBuilder.sql().UTF8String);
+
+sqlBuilder.reset();
+sqlBuilder.update(@"table").fieldPh(@"field0", @"field1", @"field2", @"field3").where(@"name").equalTo(@"buildSql").end();
+printf("%s\n", sqlBuilder.sql().UTF8String);
+
+sqlBuilder.reset();
+sqlBuilder.Delete(@"table").where(@"id").greaterThan(@1001).Or(@"id").lessThanOrEqualtTo(@2001).end();
 printf("%s\n", sqlBuilder.sql().UTF8String);
 ```
 输出：
 ```
 SELECT field0, field1, field2 FROM table WHERE id=1 AND type<9;
 INSERT INTO table(field0, field1, field2, field3) VALUES(?,?,?,?);
+UPDATE table SET field0=?, field1=?, field2=?, field3=? WHERE name='buildSql';
+DELETE FROM table WHERE id>1001 OR id<=2001;
 ```
 # 使用要求
 * Xcode 7.3
