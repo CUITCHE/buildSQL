@@ -7,19 +7,28 @@
 具体用法：
 ```Objective-C
 BuildSql sqlBuilder;
+// select
 sqlBuilder.select(@"field0", @"field1", @"field2").from(@"table").where(@"id").equalTo(@(1)).And(@"type").lessThan(@(9)).end();
 printf("%s\n", sqlBuilder.sql().UTF8String);
 
 sqlBuilder.reset();
+// insert into
 sqlBuilder.insertInto(@"table").field(@"field0", @"field1", @"field2", @"field3").values();
 printf("%s\n", sqlBuilder.sql().UTF8String);
 
 sqlBuilder.reset();
+// update
 sqlBuilder.update(@"table").fieldPh(@"field0", @"field1", @"field2", @"field3").where(@"name").equalTo(@"buildSql").end();
 printf("%s\n", sqlBuilder.sql().UTF8String);
 
 sqlBuilder.reset();
+// delete
 sqlBuilder.Delete(@"table").where(@"id").greaterThan(@1001).Or(@"id").lessThanOrEqualtTo(@2001).end();
+printf("%s\n", sqlBuilder.sql().UTF8String);
+
+sqlBuilder.reset();
+// order by
+sqlBuilder.select(@"field0", @"field1", @"field2").from(@"table").where(@"id").equalTo(@(1)).And(@"type").lessThan(@(9)).orderBy(@"field0").end();
 printf("%s\n", sqlBuilder.sql().UTF8String);
 ```
 输出：
@@ -28,12 +37,14 @@ SELECT field0, field1, field2 FROM table WHERE id=1 AND type<9;
 INSERT INTO table(field0, field1, field2, field3) VALUES(?,?,?,?);
 UPDATE table SET field0=?, field1=?, field2=?, field3=? WHERE name='buildSql';
 DELETE FROM table WHERE id>1001 OR id<=2001;
+SELECT field0, field1, field2 FROM table WHERE id=1 AND type<9 ORDER BY field0
 ```
 # 使用要求
 * Xcode 7.3
 * Only support [C]
 
 # 注意
+* buildSql基本上不会去检查语法错误！
 * 目前实现了`SELECT`，`UPDATE`，`DELETE`，`INSERT INTO`的简单用法。
 * 高级约束未实现。
 * `CREATE TABLE`未实现。

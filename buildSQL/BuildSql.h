@@ -11,6 +11,13 @@
 
 #import <Foundation/Foundation.h>
 
+typedef enum {
+    /// 升序
+    ASC,
+    /// 降序
+    DESC
+} Order;
+
 class BuildSql
 {
 public:
@@ -42,6 +49,8 @@ public:
 
     BuildSql& value(NSString *value);
     BuildSql& placeholder();
+
+    BuildSql& orderBy(NSString *field, Order order = ASC);
 
 #pragma mark - final sql
     NSString* sql() const;

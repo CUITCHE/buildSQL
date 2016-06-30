@@ -153,6 +153,15 @@ BuildSql& BuildSql::placeholder()
     return *this;
 }
 
+BuildSql& BuildSql::orderBy(NSString *field, Order order/* = ASC*/)
+{
+    [[d->sql append:@" ORDER BY "] appendString:field];
+    if (order == DESC) {
+        [d->sql appendString:@" DESC"];
+    }
+    return *this;
+}
+
 #pragma mark - final sql
 NSString* BuildSql::sql() const
 {
