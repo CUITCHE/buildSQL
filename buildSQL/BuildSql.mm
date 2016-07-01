@@ -15,7 +15,9 @@ struct SqlMakerPrivateData
     uint32_t updating    : 1;
     uint32_t deleting    : 1;
     uint32_t selecting   : 1;
+    uint32_t creating    : 1;
     uint32_t operation   : 1; // 上一个操作是=,<>,>,<,<=,>=等操作
+    uint32_t creatingHasColumn : 1; // 已经添加一列了
     uint32_t insertCount : 5; // 31个参数最多
 
     NSMutableString *sql;
@@ -30,8 +32,10 @@ struct SqlMakerPrivateData
         updating = 0;
         deleting = 0;
         selecting = 0;
+        creating = 0;
         operation = 0;
         insertCount = 0;
+        creatingHasColumn = 0;
         [sql setString:@""];
     }
 };
@@ -145,6 +149,75 @@ BuildSql& BuildSql::orderBy(NSString *field, Order order/* = ASC*/)
     if (order == DESC) {
         [d->sql appendString:@" DESC"];
     }
+    return *this;
+}
+
+BuildSql& BuildSql::create(NSString *table)
+{
+    do {
+        if (d->creating) {
+            NSCAssert(NO, @"SQL: sql syntax error. You are already in creat-table. And you couldn't use 'creat' again.");
+            break;
+        }
+        [[d->sql append:@"CREATE TABLE IF NOT EXISTS "] appendString:table];
+        this->scopes();
+        d->creating = 1;
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::column(NSString *name, SqlType type, __capacity capacity/* = {0,0}*/)
+{
+#define __common(type) [words appendFormat:@"%@ %s", name, #type];
+#define __case(type) case SqlType##type:\
+                        __common(type) \
+                        break
+#define __caseCapacity(type) case SqlType##type:\
+                                __common(type)\
+                                [words appendFormat:@"(%u)",bs_whole(capacity)];\
+                                break
+#define __case2Place(type) case SqlType##type:\
+                                __common(type)\
+                                [words appendFormat:@"(%u,%u)",capacity.wholeMax,capacity.rightMax];\
+                                break
+    if (!name.length) {
+        return *this;
+    }
+    NSMutableString *words = [NSMutableString stringWithCapacity:20];
+    switch (type) {
+        __case(Int);
+        __case(TinyInt);
+        __case(SmallInt);
+        __case(MediumInt);
+        __case(BigInt);
+        __case(UnsignedBigInt);
+        __case(Int2);
+        __case(Int8);
+        __case(Integer);
+        __caseCapacity(Varchar);
+        __caseCapacity(NVarchar);
+        __caseCapacity(Char);
+        __caseCapacity(NChar);
+        __case(CLOB);
+        __case(Text);
+        __case(Double);
+        __case(Float);
+        __case(Real);
+        __case2Place(Decimal);
+        __case(Date);
+        __case(DateTime);
+        __case(Boolean);
+        __case2Place(Numeric);
+        __case(Blob);
+        default:
+            return *this;
+    }
+    if (d->creatingHasColumn) {
+        [d->sql appendString:@","];
+    } else {
+        d->creatingHasColumn = 1;
+    }
+    [d->sql appendString:words];
     return *this;
 }
 
@@ -323,6 +396,9 @@ void BuildSql::end()
         if (d->isFinished) {
             NSCAssert(NO, @"SQL: has finished!");
             break;
+        }
+        if (d->creating) {
+            this->scopee();
         }
         [d->sql appendString:@";"];
         d->isFinished = 1;

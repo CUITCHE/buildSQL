@@ -81,4 +81,13 @@
     sqlBuilder.select(@"f0", @"f1", @"f2").from(@"table").where(@"id").greaterThan(@1).And(@"name").equalTo(@"buildSQL");
     XCTAssertEqualObjects(sqlBuilder.sql(), @"SELECT f0, f1, f2 FROM table WHERE id>1 AND name='buildSQL'");
 }
+
+- (void)testCreateTable
+{
+    sqlBuilder.create(@"table").
+    column(@"id", SqlTypeInteger).primaryKey().
+    column(@"name", SqlTypeVarchar, bs_max(200)).nonull().
+    column(@"number", SqlTypeDecimal, bs_precision(20, 8)).nonull().end();
+    XCTAssertEqualObjects(sqlBuilder.sql(), @"CREATE TABLE IF NOT EXISTS table(id Integer PRIMARY KEY,name Varchar(200) NOT NULL,number Decimal(20,8) NOT NULL);");
+}
 @end

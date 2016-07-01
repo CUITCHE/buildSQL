@@ -11,12 +11,59 @@
 
 #import <Foundation/Foundation.h>
 
-typedef enum {
+typedef NS_ENUM(uint8_t, Order) {
     /// 升序
     ASC,
     /// 降序
     DESC
-} Order;
+};
+
+typedef NS_ENUM(NSInteger, SqlType) {
+#pragma mark INTEGER in SQLITE
+    SqlTypeInt,
+    SqlTypeTinyInt,
+    SqlTypeSmallInt,
+    SqlTypeMediumInt,
+    SqlTypeBigInt,
+    SqlTypeUnsignedBigInt,
+    SqlTypeInt2,
+    SqlTypeInt8,
+    SqlTypeInteger,
+
+#pragma mark TEXT in SQLITE
+    SqlTypeVarchar,
+    SqlTypeNVarchar,
+    SqlTypeChar,
+    SqlTypeNChar,
+    SqlTypeCLOB,
+    SqlTypeText,
+
+#pragma mark REAL in SQLITE
+    SqlTypeDouble,
+    SqlTypeFloat,
+    SqlTypeReal,
+
+#pragma mark NUMBERIC in SQLITE
+    SqlTypeDecimal,
+    SqlTypeDate,
+    SqlTypeDateTime,
+    SqlTypeBoolean,
+    SqlTypeNumeric,
+
+#pragma mark NONE in SQLITE
+    SqlTypeBlob
+};
+
+// __capacity begin
+typedef struct {
+    uint32_t wholeMax : 16;
+    uint32_t rightMax : 16;
+}__capacity;
+
+NS_INLINE uint32_t bs_whole(__capacity c) {return (((uint32_t)c.wholeMax)<<16) | c.rightMax;}
+NS_INLINE __capacity bs_max(uint32_t val) {return {((val&0xFFFF0000)>>16), (val&0x0000FFFF)};}
+NS_INLINE __capacity bs_precision(uint16_t whole, uint16_t right) {return {.wholeMax=whole,.rightMax=right};};
+// __capacity end
 
 class BuildSql
 {
@@ -48,6 +95,8 @@ public:
 
     BuildSql& orderBy(NSString *field, Order order = ASC);
 
+    BuildSql& create(NSString *table);
+    BuildSql& column(NSString *name, SqlType type, __capacity capacity = {0,0});
 #pragma mark - final sql
     NSString* sql() const;
 
