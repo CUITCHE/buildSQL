@@ -101,12 +101,30 @@ public:
     NSString* sql() const;
 
 #pragma mark - operation
+    /// same as equalTo.
+    BuildSql& et(id value){return equalTo(value);}
     BuildSql& equalTo(id value);
+
+    /// same as notEqualTo.
+    BuildSql& net(id value){return notEqualTo(value);}
     BuildSql& notEqualTo(id value);
+
+    /// same as greaterThan.
+    BuildSql& gt(id value){return greaterThan(value);}
     BuildSql& greaterThan(id value);
+
+    /// same as greaterThanOrEqualTo.
+    BuildSql& ngt(id value){return greaterThanOrEqualTo(value);}
     BuildSql& greaterThanOrEqualTo(id value);
+
+    /// same as lessThan.
+    BuildSql& lt(id value){return lessThan(value);}
     BuildSql& lessThan(id value);
+
+    /// same as lessThanOrEqualtTo.
+    BuildSql& nlt(id value){return lessThanOrEqualtTo(value);}
     BuildSql& lessThanOrEqualtTo(id value);
+
     BuildSql& like(NSString *value);
     BuildSql& And(NSString *feild); // like and
     BuildSql& Or(NSString *feild);  // like or
