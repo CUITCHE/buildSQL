@@ -97,7 +97,7 @@ BuildSql& BuildSql::insertInto(NSString *table)
     return *this;
 }
 
-BuildSql& BuildSql::values()
+void BuildSql::values()
 {
     do {
         if (!d->inserting) {
@@ -113,7 +113,6 @@ BuildSql& BuildSql::values()
         [d->sql append:@")"];
         this->end();
     } while(0);
-    return *this;
 }
 
 BuildSql& BuildSql::scopes()
@@ -128,10 +127,15 @@ BuildSql& BuildSql::scopee()
     return *this;
 }
 
-BuildSql& BuildSql::value(NSString *value)
+BuildSql& BuildSql::value(id val)
 {
-    [d->sql appendString:value];
-    d->operation = 0;
+    if ([val isKindOfClass:[NSNumber class]]) {
+        [d->sql appendString:[val stringValue]];
+    } else if ([val isKindOfClass:[NSString class]]) {
+        [d->sql appendFormat:@"'%@'", val];
+    } else {
+        NSCAssert(NO, @"SQL: unsupport type:%@", [val class]);
+    }
     return *this;
 }
 
@@ -332,7 +336,7 @@ void BuildSql::reset()
 
 @implementation NSMutableString (append)
 
-- (instancetype)append:(NSString *)aString
+- (NSMutableString *)append:(NSString *)aString
 {
     [self appendString:aString];
     return self;

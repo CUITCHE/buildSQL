@@ -39,12 +39,12 @@ public:
     BuildSql& update(NSString *table);
 
     BuildSql& insertInto(NSString *table);
-    BuildSql& values(); // 如果本条sql使用了insert，那么将会自动插入与insert相同数量的placeholder
+    void values(); // 如果本条sql使用了insert，那么将会自动插入与insert相同数量的placeholder
 
     BuildSql& scopes(); // '('开始标记
     BuildSql& scopee(); // ')'结束标记
 
-    BuildSql& value(NSString *value);
+    BuildSql& value(id val);
 
     BuildSql& orderBy(NSString *field, Order order = ASC);
 
@@ -117,7 +117,7 @@ BuildSql& BuildSql::select_extend(NSString *field, Args... args)
 #pragma mark -[C]
 @interface NSMutableString (append)
 
-- (instancetype)append:(NSString *)aString;
+- (NSMutableString *)append:(NSString *)aString;
 
 @end
 

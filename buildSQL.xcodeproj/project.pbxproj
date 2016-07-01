@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		FB1B44E41D2564120088A854 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = FB1B44E31D2564120088A854 /* main.mm */; };
 		FB1B44EC1D25649D0088A854 /* BuildSql.mm in Sources */ = {isa = PBXBuildFile; fileRef = FB1B44EB1D25649D0088A854 /* BuildSql.mm */; };
+		FB40020A1D2634F900A37013 /* buildSQLTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = FB4002091D2634F900A37013 /* buildSQLTest.mm */; };
+		FB40020F1D26352E00A37013 /* BuildSql.mm in Sources */ = {isa = PBXBuildFile; fileRef = FB1B44EB1D25649D0088A854 /* BuildSql.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,10 +30,20 @@
 		FB1B44E31D2564120088A854 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		FB1B44EA1D25649D0088A854 /* BuildSql.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BuildSql.h; sourceTree = "<group>"; };
 		FB1B44EB1D25649D0088A854 /* BuildSql.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BuildSql.mm; sourceTree = "<group>"; };
+		FB4002071D2634F900A37013 /* buildSQLTest.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = buildSQLTest.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB4002091D2634F900A37013 /* buildSQLTest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = buildSQLTest.mm; sourceTree = "<group>"; };
+		FB40020B1D2634F900A37013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		FB1B44DD1D2564120088A854 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FB4002041D2634F900A37013 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -45,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				FB1B44E21D2564120088A854 /* buildSQL */,
+				FB4002081D2634F900A37013 /* buildSQLTest */,
 				FB1B44E11D2564120088A854 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				FB1B44E01D2564120088A854 /* buildSQL */,
+				FB4002071D2634F900A37013 /* buildSQLTest.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -65,6 +79,15 @@
 				FB1B44E31D2564120088A854 /* main.mm */,
 			);
 			path = buildSQL;
+			sourceTree = "<group>";
+		};
+		FB4002081D2634F900A37013 /* buildSQLTest */ = {
+			isa = PBXGroup;
+			children = (
+				FB4002091D2634F900A37013 /* buildSQLTest.mm */,
+				FB40020B1D2634F900A37013 /* Info.plist */,
+			);
+			path = buildSQLTest;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -87,6 +110,23 @@
 			productReference = FB1B44E01D2564120088A854 /* buildSQL */;
 			productType = "com.apple.product-type.tool";
 		};
+		FB4002061D2634F900A37013 /* buildSQLTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB40020E1D2634F900A37013 /* Build configuration list for PBXNativeTarget "buildSQLTest" */;
+			buildPhases = (
+				FB4002031D2634F900A37013 /* Sources */,
+				FB4002041D2634F900A37013 /* Frameworks */,
+				FB4002051D2634F900A37013 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = buildSQLTest;
+			productName = buildSQLTest;
+			productReference = FB4002071D2634F900A37013 /* buildSQLTest.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -97,6 +137,9 @@
 				ORGANIZATIONNAME = CHE;
 				TargetAttributes = {
 					FB1B44DF1D2564120088A854 = {
+						CreatedOnToolsVersion = 7.3;
+					};
+					FB4002061D2634F900A37013 = {
 						CreatedOnToolsVersion = 7.3;
 					};
 				};
@@ -114,9 +157,20 @@
 			projectRoot = "";
 			targets = (
 				FB1B44DF1D2564120088A854 /* buildSQL */,
+				FB4002061D2634F900A37013 /* buildSQLTest */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FB4002051D2634F900A37013 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		FB1B44DC1D2564120088A854 /* Sources */ = {
@@ -125,6 +179,15 @@
 			files = (
 				FB1B44EC1D25649D0088A854 /* BuildSql.mm in Sources */,
 				FB1B44E41D2564120088A854 /* main.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FB4002031D2634F900A37013 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB40020A1D2634F900A37013 /* buildSQLTest.mm in Sources */,
+				FB40020F1D26352E00A37013 /* BuildSql.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,6 +289,28 @@
 			};
 			name = Release;
 		};
+		FB40020C1D2634F900A37013 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = buildSQLTest/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.hejunqiu.ddm.buildSQLTest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		FB40020D1D2634F900A37013 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = buildSQLTest/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.hejunqiu.ddm.buildSQLTest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -246,6 +331,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		FB40020E1D2634F900A37013 /* Build configuration list for PBXNativeTarget "buildSQLTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FB40020C1D2634F900A37013 /* Debug */,
+				FB40020D1D2634F900A37013 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
