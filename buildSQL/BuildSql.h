@@ -125,8 +125,7 @@ public:
     BuildSql& nlt(id value){return lessThanOrEqualtTo(value);}
     BuildSql& lessThanOrEqualtTo(id value);
 
-    BuildSql& like(NSString *value);
-    BuildSql& And(NSString *feild); // like and
+    BuildSql& And(id valueOrField); // like and
     BuildSql& Or(NSString *feild);  // like or
 
 #pragma mark - constraint
@@ -134,10 +133,30 @@ public:
     BuildSql& unique();
     BuildSql& primaryKey();
 
+#pragma mark - advance
+    BuildSql& like(NSString *value);
+    /**
+     * @author hejunqiu, 16-07-03 22:07:51
+     *
+     * Build a statement-sql for a clause of SELECT: 'TOP 100' or 'TOP 50 PERCENT'.
+     * Such as 'SELECT TOP 2 * FROM Persons', 'SELECT TOP 50 PERCENT * FROM Persons'.
+     *
+     * @param number An object of NSNumber presents integer or float value. If number
+     * is a float value, it's limit between 0 and 1.
+     *
+     * @return An object of BuildSql.
+     */
+    BuildSql& top(NSNumber *number);
+
+    BuildSql& in(NSArray *numberOrStringValues);
+    BuildSql& between(id value);
+
 #pragma mark - unsql
     bool isFinished() const;
     void end();
     void reset();
+    NSString* cacheForKey(NSString *key) const;
+    void setCacheForKey(NSString *key);
 protected:
     BuildSql& field(){return *this;}
     BuildSql& field_impl(NSString *field, bool hasNext);

@@ -91,4 +91,16 @@
     column(@"unique", SqlTypeDateTime).unique().end();
     XCTAssertEqualObjects(sqlBuilder.sql(), @"CREATE TABLE IF NOT EXISTS table(id Integer PRIMARY KEY,name Varchar(200) NOT NULL,number Decimal(20,8) NOT NULL,unique DateTime UNIQUE);");
 }
+
+- (void)testCache
+{
+    sqlBuilder.update(@"table").fieldPh(@"f0", @"f1", @"f2", @"f3").where(@"id").greaterThan(@200).Or(@"id").lessThanOrEqualtTo(@34).end();
+    sqlBuilder.setCacheForKey(@"1");
+
+    sqlBuilder.reset();
+    sqlBuilder.update(@"table").fieldPh(@"f0", @"f11", @"f2", @"f3").where(@"id").greaterThan(@200).Or(@"id").lessThanOrEqualtTo(@34).end();
+    sqlBuilder.setCacheForKey(@"2");
+
+    XCTAssertNotEqualObjects(sqlBuilder.cacheForKey(@"1"), sqlBuilder.cacheForKey(@"2"));
+}
 @end

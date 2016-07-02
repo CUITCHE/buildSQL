@@ -18,10 +18,12 @@ struct SqlMakerPrivateData
     uint32_t creating    : 1;
     uint32_t operation   : 1; // 上一个操作是=,<>,>,<,<=,>=等操作
     uint32_t creatingHasColumn : 1; // 已经添加一列了
+    uint32_t betweening  : 1;
     uint32_t insertCount : 5; // 31个参数最多
 
     NSMutableString *sql;
     NSString *placeholder;
+    NSMutableDictionary<NSString *, NSString *> *cache_sql;
 
     SqlMakerPrivateData()
     :sql([NSMutableString stringWithCapacity:40])
@@ -36,6 +38,7 @@ struct SqlMakerPrivateData
         operation = 0;
         insertCount = 0;
         creatingHasColumn = 0;
+        betweening = 0;
         [sql setString:@""];
     }
 };
@@ -312,15 +315,26 @@ BuildSql& BuildSql::lessThanOrEqualtTo(id value)
     return *this;
 }
 
-BuildSql& BuildSql::like(NSString *value)
+BuildSql& BuildSql::And(id valueOrField)
 {
-    [[d->sql append:@" LIKE "] appendString:value];
-    return *this;
-}
-
-BuildSql& BuildSql::And(NSString *feild)
-{
-    [[d->sql append:@" AND "] append:feild];
+    do {
+        NSString *format = nil;
+        if (d->betweening) {
+            if ([valueOrField isKindOfClass:[NSNumber class]]) {
+                format = @"%@";
+            } else if ([valueOrField isKindOfClass:[NSString class]]) {
+                format = @"'%@'";
+            } else {
+                NSCAssert(NO, @"Unexpected contained object type.");
+                break;
+            }
+            d->betweening = 0;
+        } else {
+            format = @"%@";
+        }
+        [d->sql appendString:@" AND "];
+        [d->sql appendFormat:format, valueOrField];
+    } while (0);
     return *this;
 }
 
@@ -384,6 +398,70 @@ BuildSql& BuildSql::primaryKey()
     return *this;
 }
 
+#pragma mark - advance
+BuildSql& BuildSql::like(NSString *value)
+{
+    [d->sql appendFormat:@" LIKE '%@'", value];
+    return *this;
+}
+
+BuildSql& BuildSql::top(NSNumber *number)
+{
+    NSCAssert(number, @"Illegal param [number] is null.");
+    do {
+        const char *type = number.objCType;
+        if (strcmp(type, @encode(double)) || strcmp(type, @encode(float))) {
+            double v = number.doubleValue;
+            if (v < 0 || v > 1) {
+                NSCAssert(NO, @"Unexpected limit. [0,1] wanted.");
+                break;
+            }
+            [d->sql appendFormat:@" TOP %@ PERCENT ", number];
+        } else {
+            [d->sql appendFormat:@" TOP %@" , number];
+        }
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::in(NSArray *numberOrStringValues)
+{
+    NSCAssert(numberOrStringValues.count, @"Illegal param integerOrStringValues.count = 0.");
+    id obj = numberOrStringValues.firstObject;
+    NSString *format = nil;
+    if ([obj isKindOfClass:[NSNumber class]]) {
+        format = @"%@";
+    } else if ([obj isKindOfClass:[NSString class]]) {
+        format = @"'%@'";
+    }
+    NSCAssert(format, @"Unexpected contained object type.");
+    [d->sql appendString:@" IN ("];
+    BOOL first = YES;
+    for (id o in numberOrStringValues) {
+        if (first) {
+            first = NO;
+        } else {
+            [d->sql appendString:@","];
+        }
+        [d->sql appendFormat:format, o];
+    }
+    [d->sql appendString:@")"];
+    return *this;
+}
+
+BuildSql& BuildSql::between(id value)
+{
+    [d->sql appendString:@" BETWEEN "];
+    NSString *format = nil;
+    if ([value isKindOfClass:[NSNumber class]]) {
+        format = @"%@";
+    } else if ([value isKindOfClass:[NSString class]]) {
+        format = @"'%@'";
+    }
+    [d->sql appendFormat:format, value];
+    return *this;
+}
+
 #pragma mark - unsql
 bool BuildSql::isFinished() const
 {
@@ -408,6 +486,25 @@ void BuildSql::end()
 void BuildSql::reset()
 {
     d->clean();
+}
+
+NSString* BuildSql::cacheForKey(NSString *key) const
+{
+    NSString *sql = nil;
+    do {
+        if (!d->cache_sql) {
+            break;
+        }
+        sql = [d->cache_sql objectForKey:key];
+    } while (0);
+    return sql;
+}
+void BuildSql::setCacheForKey(NSString *key)
+{
+    if (!d->cache_sql) {
+        d->cache_sql = [NSMutableDictionary dictionaryWithCapacity:10];
+    }
+    [d->cache_sql setObject:d->sql.copy forKey:key];
 }
 
 @implementation NSMutableString (append)
