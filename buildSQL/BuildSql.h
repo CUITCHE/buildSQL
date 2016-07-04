@@ -18,6 +18,15 @@ typedef NS_ENUM(uint8_t, Order) {
     DESC
 };
 
+typedef NS_ENUM(uint8_t, JoinWay) {
+    /// 外联
+    OUTER,
+    /// 内联
+    INNER,
+    /// 交差集
+    CROSS
+};
+
 typedef NS_ENUM(NSInteger, SqlType) {
 #pragma mark INTEGER in SQLITE
     SqlTypeInt,
@@ -54,6 +63,17 @@ typedef NS_ENUM(NSInteger, SqlType) {
     SqlTypeBlob
 };
 
+typedef NS_ENUM(NSInteger, SqlJoinType) {
+    /// As JOIN
+    SqlJoinTypeNormal,
+    /// As LEFT JOIN
+    SqlJoinTypeLeft,
+    /// As RIGHT JOIN
+    SqlJoinTypeRight,
+    /// As FULL JOIN
+    SqlJoinTypeFull
+};
+
 // __capacity begin
 typedef struct {
     uint32_t wholeMax : 16;
@@ -64,6 +84,14 @@ NS_INLINE uint32_t bs_whole(__capacity c) {return (((uint32_t)c.wholeMax)<<16) |
 NS_INLINE __capacity bs_max(uint32_t val) {return {((val&0xFFFF0000)>>16), (val&0x0000FFFF)};}
 NS_INLINE __capacity bs_precision(uint16_t whole, uint16_t right) {return {.wholeMax=whole,.rightMax=right};};
 // __capacity end
+
+#ifdef BS_USE_SQLITE
+#define BS_USE_SQLITE_META
+#endif
+
+#ifdef BS_USE_MYSQL
+#define BS_USE_MYSQL_META
+#endif
 
 class BuildSql
 {
@@ -130,9 +158,24 @@ public:
 
 #pragma mark - constraint
     BuildSql& nonull();
-    BuildSql& unique();
-    BuildSql& primaryKey();
 
+    BuildSql& unique();
+    BuildSql& unique(NSString *field);
+
+    BuildSql& primaryKey();
+    BuildSql& primaryKey(NSString *field);
+
+    BuildSql& foreignKey(NSString *field, NSString *toField, NSString *ofAnotherTable);
+#if __ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES
+    #if defined(check)
+        #undef check
+    #endif
+#endif
+    BuildSql& check(NSString *statement);
+    BuildSql& checks();
+    BuildSql& checke();
+
+    BuildSql& Default(NSString *statement);
 #pragma mark - advance
     BuildSql& like(NSString *value);
     /**
@@ -150,7 +193,16 @@ public:
 
     BuildSql& in(NSArray *numberOrStringValues);
     BuildSql& between(id value);
+    BuildSql& as(NSString *alias);
+    BuildSql& joinOn(NSString *table, SqlJoinType type, JoinWay oi = OUTER);
+    BuildSql& Union(bool recur = NO);
+    /// Just wrote after SELECT statement. And unsupport that wrote to another database.
+    BuildSql& into(NSString *table);
+    BuildSql& createIndex(NSString *indexName, NSString *onField, NSString *ofTable, bool unique = false);
 
+#pragma mark - NULLs
+    BuildSql& isnull();
+    BuildSql& isnnull();
 #pragma mark - unsql
     bool isFinished() const;
     void end();
@@ -200,6 +252,7 @@ BuildSql& BuildSql::select_extend(NSString *field, Args... args)
     select_impl(field, sizeof...(args) > 0);
     return select_extend(args...);
 }
+
 #pragma mark -[C]
 @interface NSMutableString (append)
 

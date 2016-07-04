@@ -24,6 +24,7 @@ struct SqlMakerPrivateData
     NSMutableString *sql;
     NSString *placeholder;
     NSMutableDictionary<NSString *, NSString *> *cache_sql;
+    SqlType lastTypeOfField;
 
     SqlMakerPrivateData()
     :sql([NSMutableString stringWithCapacity:40])
@@ -159,14 +160,13 @@ BuildSql& BuildSql::create(NSString *table)
 {
     do {
         if (d->creating) {
-            NSCAssert(NO, @"SQL: sql syntax error. You are already in creat-table. And you couldn't use 'creat' again.");
+            NSCAssert(NO, @"SQL: sql syntax error. You are already in creat-funcational. And you couldn't use 'creat' again.");
             break;
         }
         [[d->sql append:@"CREATE TABLE IF NOT EXISTS "] appendString:table];
-        this->scopes();
         d->creating = 1;
     } while (0);
-    return *this;
+    return this->scopes();
 }
 
 BuildSql& BuildSql::column(NSString *name, SqlType type, __capacity capacity/* = {0,0}*/)
@@ -221,6 +221,7 @@ BuildSql& BuildSql::column(NSString *name, SqlType type, __capacity capacity/* =
         d->creatingHasColumn = 1;
     }
     [d->sql appendString:words];
+    d->lastTypeOfField = type;
     return *this;
 }
 
@@ -376,6 +377,7 @@ BuildSql& BuildSql::select_impl(NSString *field, bool hasNext)
 
 void BuildSql::select()
 {
+    d->selecting = 1;
     [d->sql appendString:@"SELECT "];
 }
 
@@ -392,9 +394,127 @@ BuildSql& BuildSql::unique()
     return *this;
 }
 
+BuildSql& BuildSql::unique(NSString *field)
+{
+    do {
+        if (!d->creating) {
+            NSCAssert(NO, @"Tail-UNIQUE operation is just used in CREATE statement.");
+            break;
+        }
+        if (!d->creatingHasColumn) {
+            NSCAssert(NO, @"No column!");
+            break;
+        }
+        [d->sql appendFormat:@",UNIQUE (%@)", field];
+    } while (0);
+    return *this;
+}
+
 BuildSql& BuildSql::primaryKey()
 {
     [d->sql appendString:@" PRIMARY KEY"];
+    return *this;
+}
+
+BuildSql& BuildSql::primaryKey(NSString *field)
+{
+    do {
+        if (!d->creating) {
+            NSCAssert(NO, @"Tail-PRIMARY KEY operation is just used in CREATE statement.");
+            break;
+        }
+        if (!d->creatingHasColumn) {
+            NSCAssert(NO, @"No column!");
+            break;
+        }
+        [d->sql appendFormat:@",PRIMARY KEY (%@)", field];
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::foreignKey(NSString *field, NSString *toField, NSString *ofAnotherTable)
+{
+    do {
+        if (!d->creating) {
+            NSCAssert(NO, @"Tail-FOREIGN KEY operation is just used in CREATE statement.");
+            break;
+        }
+        if (!d->creatingHasColumn) {
+            NSCAssert(NO, @"No column!");
+            break;
+        }
+        [d->sql appendFormat:@",FOREIGN KEY (%@) REFERENCES %@(%@)",
+                             field, ofAnotherTable, toField];
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::check(NSString *statement)
+{
+    do {
+        if (!d->creating) {
+            NSCAssert(NO, @"Tail-CHECK operation is just used in CREATE statement.");
+            break;
+        }
+        if (!d->creatingHasColumn) {
+            NSCAssert(NO, @"No column!");
+            break;
+        }
+        [d->sql appendFormat:@",CHECK (%@)", statement];
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::checks()
+{
+    do {
+        if (!d->creating) {
+            NSCAssert(NO, @"Tail-CHECK operation is just used in CREATE statement.");
+            break;
+        }
+        if (!d->creatingHasColumn) {
+            NSCAssert(NO, @"No column!");
+            break;
+        }
+        [d->sql appendString:@",CHECK ("];
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::checke()
+{
+    do {
+        if (!d->creating) {
+            NSCAssert(NO, @"Tail-CHECK operation is just used in CREATE statement.");
+            break;
+        }
+        if (!d->creatingHasColumn) {
+            NSCAssert(NO, @"No column!");
+            break;
+        }
+        [d->sql appendString:@")"];
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::Default(NSString *statement)
+{
+    do {
+        if (!d->creating) {
+            NSCAssert(NO, @"DEFAULT operation is just used in CREATE statement.");
+            break;
+        }
+        if (!d->creatingHasColumn) {
+            NSCAssert(NO, @"No column!");
+            break;
+        }
+        [d->sql appendString:@" DEFAULT "];
+        if (d->lastTypeOfField >= SqlTypeVarchar && d->lastTypeOfField <= SqlTypeText) {
+            [d->sql appendFormat:@"'%@'", statement];
+        } else {
+            [d->sql appendString:statement];
+        }
+    } while (0);
     return *this;
 }
 
@@ -462,6 +582,114 @@ BuildSql& BuildSql::between(id value)
     return *this;
 }
 
+BuildSql& BuildSql::as(NSString *alias)
+{
+    [[d->sql append:@" AS "] appendString:alias];
+    return *this;
+}
+
+BuildSql& BuildSql::joinOn(NSString *table, SqlJoinType type, JoinWay oi/* = OUTER*/)
+{
+    do {
+        NSCAssert(table.length, @"Illegal param[table]");
+        NSString *format = nil;
+        switch (type) {
+            case SqlJoinTypeNormal:
+                format = @" %@ JOIN %@ ON ";
+                break;
+            case SqlJoinTypeLeft:
+                format = @" LEFT %@ JOIN %@ ON ";
+                break;
+            case SqlJoinTypeRight:
+                format = @" RIGHT %@ JOIN %@ ON ";
+                break;
+            case SqlJoinTypeFull:
+                format = @" FULL %@ JOIN %@ ON ";
+                break;
+        }
+        if (!format) {
+            NSCAssert(NO, @"Unexpected SqlJoinType, code:%@", @(type));
+            break;
+        }
+        NSString *joinway = nil;
+        switch (oi) {
+            case OUTER:
+                joinway = @"OUTER";
+                break;
+            case INNER:
+                joinway = @"INNER";
+                break;
+            case CROSS:
+                joinway = @"CROSS";
+                break;
+        }
+        if (!joinway) {
+            NSCAssert(NO, @"Unexpected JoinWay, code:%@", @(oi));
+            break;
+        }
+        NSString *sql = [NSString stringWithFormat:format, joinway, table];
+        [d->sql appendString:sql];
+    } while(0);
+    return *this;
+}
+
+BuildSql& BuildSql::Union(bool recur/* = NO*/)
+{
+    do {
+        if (!d->selecting) {
+            NSCAssert(NO, @"Union operation is just used in SELECT statement.");
+            break;
+        }
+        [d->sql appendString:@" UNION "];
+        if (recur) {
+            [d->sql appendString:@"ALL "];
+        }
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::into(NSString *table)
+{
+    do {
+        if (table.length) {
+            NSCAssert(NO, @"Illegal param[table]");
+            break;
+        }
+        if (!d->selecting) {
+            NSCAssert(NO, @"SELECT INTO operation is just used in SELECT statement.");
+            break;
+        }
+        [d->sql appendFormat:@" INTO %@", table];
+    } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::createIndex(NSString *indexName,
+                                NSString *onField,
+                                NSString *ofTable,
+                                bool unique/* = false*/)
+{
+    NSString *format = nil;
+    if (unique) {
+        format = @"CREATE UNIQUE INDEX %@ ON %@(%@)";
+    } else {
+        format = @"CREATE INDEX %@ ON %@(%@)";
+    }
+    [d->sql appendFormat:format, indexName, ofTable, onField];
+    return *this;
+}
+
+BuildSql& BuildSql::isnull()
+{
+    [d->sql appendString:@" IS NULL"];
+    return *this;
+}
+BuildSql& BuildSql::isnnull()
+{
+    [d->sql appendString:@" IS NOT NULL"];
+    return *this;
+}
+
 #pragma mark - unsql
 bool BuildSql::isFinished() const
 {
@@ -477,6 +705,7 @@ void BuildSql::end()
         }
         if (d->creating) {
             this->scopee();
+            d->creating = 0;
         }
         [d->sql appendString:@";"];
         d->isFinished = 1;
