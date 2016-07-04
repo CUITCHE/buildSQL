@@ -39,6 +39,7 @@ sqlBuilder.create(@"table").
 BuildSql可以被多次使用，只需要在使用前调用`reset()`就可以恢复到初始状态。
 # 使用要求
 * Only support [C]. 由于使用了Objective-C的`NSString`，所以暂时只支持[C]，以后会考虑改成纯C++的构建。
+* 你需要知道必要的SQL语法，请参考[SQL 教程](http://www.w3school.com.cn/sql/)
 
 # 注意
 * buildSql基本上不会去检查语法错误！
