@@ -35,6 +35,7 @@ sqlBuilder.create(@"table").
     column(@"number", SqlTypeDecimal, bs_precision(20, 8)).nonull().end(); // 这儿的end()调用是必须的
 // sames to 'CREATE TABLE IF NOT EXISTS table(id Integer PRIMARY KEY,name Varchar(200) NOT NULL,number Decimal(20,8) NOT NULL);'
 ```
+更多的用法，请参考我编写的[测试用例](/buildSQLTest/buildSQLTest.mm)。
 
 BuildSql可以被多次使用，只需要在使用前调用`reset()`就可以恢复到初始状态。
 # 使用要求
