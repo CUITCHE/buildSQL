@@ -19,6 +19,8 @@ struct SqlMakerPrivateData
     uint32_t operation   : 1; // 上一个操作是=,<>,>,<,<=,>=等操作
     uint32_t creatingHasColumn : 1; // 已经添加一列了
     uint32_t betweening  : 1;
+    uint32_t selectedArgs: 1; // 已经在select中插入了筛选列
+    uint32_t joining     : 1; // 正在进行join操作
     uint32_t insertCount : 5; // 31个参数最多
 
     NSMutableString *sql;
@@ -40,6 +42,8 @@ struct SqlMakerPrivateData
         insertCount = 0;
         creatingHasColumn = 0;
         betweening = 0;
+        selectedArgs = 0;
+        joining = 0;
         [sql setString:@""];
     }
 };
@@ -58,12 +62,31 @@ BuildSql::~BuildSql()
 BuildSql& BuildSql::from(NSString *table)
 {
     [[d->sql append:@" FROM "] appendString:table];
+    d->selectedArgs = 0;
+    return *this;
+}
+
+BuildSql& BuildSql::from(NSArray<NSString *> *tables)
+{
+    NSCAssert(tables.count, @"Illegal param tables.count = 0.");
+    [d->sql appendString:@" FROM "];
+    bool first = YES;
+    for (NSString *table in tables) {
+        if (first) {
+            first = false;
+            [d->sql appendString:table];
+        } else {
+            [d->sql appendFormat:@",%@", table];
+        }
+    }
+    d->selectedArgs = 0;
     return *this;
 }
 
 BuildSql& BuildSql::where(NSString *field)
 {
     [[d->sql append:@" WHERE "] appendString:field];
+    d->selectedArgs = 0;
     return *this;
 }
 
@@ -235,7 +258,7 @@ NSString* BuildSql::sql() const
 BuildSql& BuildSql::equalTo(id value)
 {
     do {
-        if ([value isKindOfClass:[NSNumber class]]) {
+        if ([value isKindOfClass:[NSNumber class]] || d->joining) {
             [d->sql appendFormat:@"=%@",value];
         } else if ([value isKindOfClass:[NSString class]]) {
             [d->sql appendFormat:@"='%@'",value];
@@ -249,7 +272,7 @@ BuildSql& BuildSql::equalTo(id value)
 BuildSql& BuildSql::notEqualTo(id value)
 {
     do {
-        if ([value isKindOfClass:[NSNumber class]]) {
+        if ([value isKindOfClass:[NSNumber class]] || d->joining) {
             [d->sql appendFormat:@"<>%@",value];
         } else if ([value isKindOfClass:[NSString class]]) {
             [d->sql appendFormat:@"<>'%@'",value];
@@ -263,7 +286,7 @@ BuildSql& BuildSql::notEqualTo(id value)
 BuildSql& BuildSql::greaterThan(id value)
 {
     do {
-        if ([value isKindOfClass:[NSNumber class]]) {
+        if ([value isKindOfClass:[NSNumber class]] || d->joining) {
             [d->sql appendFormat:@">%@",value];
         } else if ([value isKindOfClass:[NSString class]]) {
             [d->sql appendFormat:@">'%@'",value];
@@ -277,7 +300,7 @@ BuildSql& BuildSql::greaterThan(id value)
 BuildSql& BuildSql::greaterThanOrEqualTo(id value)
 {
     do {
-        if ([value isKindOfClass:[NSNumber class]]) {
+        if ([value isKindOfClass:[NSNumber class]] || d->joining) {
             [d->sql appendFormat:@">=%@",value];
         } else if ([value isKindOfClass:[NSString class]]) {
             [d->sql appendFormat:@">='%@'",value];
@@ -291,7 +314,7 @@ BuildSql& BuildSql::greaterThanOrEqualTo(id value)
 BuildSql& BuildSql::lessThan(id value)
 {
     do {
-        if ([value isKindOfClass:[NSNumber class]]) {
+        if ([value isKindOfClass:[NSNumber class]] || d->joining) {
             [d->sql appendFormat:@"<%@",value];
         } else if ([value isKindOfClass:[NSString class]]) {
             [d->sql appendFormat:@"<'%@'",value];
@@ -305,7 +328,7 @@ BuildSql& BuildSql::lessThan(id value)
 BuildSql& BuildSql::lessThanOrEqualtTo(id value)
 {
     do {
-        if ([value isKindOfClass:[NSNumber class]]) {
+        if ([value isKindOfClass:[NSNumber class]] || d->joining) {
             [d->sql appendFormat:@"<=%@",value];
         } else if ([value isKindOfClass:[NSString class]]) {
             [d->sql appendFormat:@"<='%@'",value];
@@ -347,6 +370,10 @@ BuildSql& BuildSql::Or(NSString *feild)
 
 BuildSql& BuildSql::field_impl(NSString *field, bool hasNext)
 {
+    if (d->selectedArgs) {
+        d->selectedArgs = 0;
+        [d->sql appendString:@", "];
+    }
     [d->sql appendString:field];
     if (d->inserting) {
         ++d->insertCount;
@@ -372,6 +399,7 @@ BuildSql& BuildSql::select_impl(NSString *field, bool hasNext)
     if (hasNext) {
         [d->sql appendString:@", "];
     }
+    d->selectedArgs = 1;
     return *this;
 }
 
@@ -460,7 +488,7 @@ BuildSql& BuildSql::check(NSString *statement)
             NSCAssert(NO, @"No column!");
             break;
         }
-        [d->sql appendFormat:@",CHECK (%@)", statement];
+        [d->sql appendFormat:@" CHECK (%@)", statement];
     } while (0);
     return *this;
 }
@@ -476,7 +504,7 @@ BuildSql& BuildSql::checks()
             NSCAssert(NO, @"No column!");
             break;
         }
-        [d->sql appendString:@",CHECK ("];
+        [d->sql appendString:@" CHECK ("];
     } while (0);
     return *this;
 }
@@ -530,17 +558,25 @@ BuildSql& BuildSql::top(NSNumber *number)
     NSCAssert(number, @"Illegal param [number] is null.");
     do {
         const char *type = number.objCType;
-        if (strcmp(type, @encode(double)) || strcmp(type, @encode(float))) {
+        if (!strcmp(type, @encode(double)) || !strcmp(type, @encode(float))) {
             double v = number.doubleValue;
             if (v < 0 || v > 1) {
                 NSCAssert(NO, @"Unexpected limit. [0,1] wanted.");
                 break;
             }
-            [d->sql appendFormat:@" TOP %@ PERCENT ", number];
+            v *= 100;
+            [d->sql appendFormat:@"SELECT TOP %d PERCENT ", (int)v];
         } else {
-            [d->sql appendFormat:@" TOP %@" , number];
+            [d->sql appendFormat:@"SELECT TOP %@ " , number];
         }
+        d->selecting = 1;
     } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::limit(uint32_t start, uint32_t count)
+{
+    [d->sql appendFormat:@" LIMIT %u,%u", start, count];
     return *this;
 }
 
@@ -579,6 +615,7 @@ BuildSql& BuildSql::between(id value)
         format = @"'%@'";
     }
     [d->sql appendFormat:format, value];
+    d->betweening = 1;
     return *this;
 }
 
@@ -629,6 +666,7 @@ BuildSql& BuildSql::joinOn(NSString *table, SqlJoinType type, JoinWay oi/* = OUT
         }
         NSString *sql = [NSString stringWithFormat:format, joinway, table];
         [d->sql appendString:sql];
+        d->joining = 1;
     } while(0);
     return *this;
 }
@@ -651,7 +689,7 @@ BuildSql& BuildSql::Union(bool recur/* = NO*/)
 BuildSql& BuildSql::into(NSString *table)
 {
     do {
-        if (table.length) {
+        if (!table.length) {
             NSCAssert(NO, @"Illegal param[table]");
             break;
         }
@@ -734,6 +772,11 @@ void BuildSql::setCacheForKey(NSString *key)
         d->cache_sql = [NSMutableDictionary dictionaryWithCapacity:10];
     }
     [d->cache_sql setObject:d->sql.copy forKey:key];
+}
+
+bool BuildSql::cached(NSString *key) const
+{
+    return [d->cache_sql objectForKey:key] != nil;
 }
 
 @implementation NSMutableString (append)

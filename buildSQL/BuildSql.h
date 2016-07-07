@@ -108,6 +108,7 @@ public:
     BuildSql& select(Args... args);
 
     BuildSql& from(NSString *table);
+    BuildSql& from(NSArray<NSString *> *tables);
     BuildSql& where(NSString *field);
 
     BuildSql& Delete(NSString *table);
@@ -190,6 +191,7 @@ public:
      * @return An object of BuildSql.
      */
     BuildSql& top(NSNumber *number);
+    BuildSql& limit(uint32_t start, uint32_t count);
 
     BuildSql& in(NSArray *numberOrStringValues);
     BuildSql& between(id value);
@@ -209,6 +211,7 @@ public:
     void reset();
     NSString* cacheForKey(NSString *key) const;
     void setCacheForKey(NSString *key);
+    bool cached(NSString *key) const;
 protected:
     BuildSql& field(){return *this;}
     BuildSql& field_impl(NSString *field, bool hasNext);
