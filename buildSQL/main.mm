@@ -15,6 +15,7 @@ int main(int argc, const char * argv[]) {
         // select
         sqlBuilder.select(@"field0", @"field1", @"field2").from(@"table").where(@"id").equalTo(@(1)).And(@"type").lessThan(@(9)).end();
         printf("%s\n", sqlBuilder.sql().UTF8String);
+        bs_set_cache(sqlBuilder, 1);
 
         sqlBuilder.reset();
         // insert into

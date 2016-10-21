@@ -263,4 +263,14 @@ BuildSql& BuildSql::select_extend(NSString *field, Args... args)
 
 @end
 
+#pragma mark - Useful
+
+#ifndef bs_set_cache
+#define bs_set_cache(obj, number) obj.setCacheForKey([@(__PRETTY_FUNCTION__) stringByAppendingString:@(#number)])
+#endif
+
+#ifndef bs_get_cache
+#define bs_get_cache(obj, number) obj.cacheForKey([@(__PRETTY_FUNCTION__) stringByAppendingString:@(#number)])
+#endif
+
 #endif /* BuildSql_hpp */
