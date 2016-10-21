@@ -10,6 +10,11 @@
 
 struct SqlMakerPrivateData
 {
+    NSMutableString *sql;
+    NSString *placeholder;
+    NSMutableDictionary<NSString *, NSString *> *cache_sql;
+    SqlType lastTypeOfField;
+
     uint32_t isFinished  : 1;
     uint32_t inserting   : 1;
     uint32_t updating    : 1;
@@ -22,11 +27,9 @@ struct SqlMakerPrivateData
     uint32_t selectedArgs: 1; // 已经在select中插入了筛选列
     uint32_t joining     : 1; // 正在进行join操作
     uint32_t insertCount : 5; // 31个参数最多
-
-    NSMutableString *sql;
-    NSString *placeholder;
-    NSMutableDictionary<NSString *, NSString *> *cache_sql;
-    SqlType lastTypeOfField;
+#if __LP64__
+    uint32_t reserved;
+#endif
 
     SqlMakerPrivateData()
     :sql([NSMutableString stringWithCapacity:40])
@@ -251,7 +254,7 @@ BuildSql& BuildSql::column(NSString *name, SqlType type, __capacity capacity/* =
 #pragma mark - final sql
 NSString* BuildSql::sql() const
 {
-    return d->sql;
+    return d->sql.copy;
 }
 
 #pragma mark - operation
@@ -269,6 +272,12 @@ BuildSql& BuildSql::equalTo(id value)
     return *this;
 }
 
+BuildSql& BuildSql::et()
+{
+    [d->sql appendFormat:@"=%@", d->placeholder];
+    return *this;
+}
+
 BuildSql& BuildSql::notEqualTo(id value)
 {
     do {
@@ -280,6 +289,12 @@ BuildSql& BuildSql::notEqualTo(id value)
             NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
         }
     } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::net()
+{
+    [d->sql appendFormat:@"<>%@", d->placeholder];
     return *this;
 }
 
@@ -297,6 +312,12 @@ BuildSql& BuildSql::greaterThan(id value)
     return *this;
 }
 
+BuildSql& BuildSql::gt()
+{
+    [d->sql appendFormat:@">%@", d->placeholder];
+    return *this;
+}
+
 BuildSql& BuildSql::greaterThanOrEqualTo(id value)
 {
     do {
@@ -308,6 +329,12 @@ BuildSql& BuildSql::greaterThanOrEqualTo(id value)
             NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
         }
     } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::nlt()
+{
+    [d->sql appendFormat:@">=%@", d->placeholder];
     return *this;
 }
 
@@ -325,6 +352,12 @@ BuildSql& BuildSql::lessThan(id value)
     return *this;
 }
 
+BuildSql& BuildSql::lt()
+{
+    [d->sql appendFormat:@"<%@", d->placeholder];
+    return *this;
+}
+
 BuildSql& BuildSql::lessThanOrEqualtTo(id value)
 {
     do {
@@ -336,6 +369,12 @@ BuildSql& BuildSql::lessThanOrEqualtTo(id value)
             NSCAssert(NO, @"SQL: unsupport type:%@", [value class]);
         }
     } while (0);
+    return *this;
+}
+
+BuildSql& BuildSql::ngt()
+{
+    [d->sql appendFormat:@"<=%@", d->placeholder];
     return *this;
 }
 
@@ -750,9 +789,10 @@ void BuildSql::end()
     } while (0);
 }
 
-void BuildSql::reset()
+BuildSql& BuildSql::reset()
 {
     d->clean();
+    return *this;
 }
 
 NSString* BuildSql::cacheForKey(NSString *key) const
@@ -768,6 +808,14 @@ NSString* BuildSql::cacheForKey(NSString *key) const
 }
 void BuildSql::setCacheForKey(NSString *key)
 {
+#if defined(__OBJC__)
+    if (cached(key)) {
+        NSString *reason = [NSString stringWithFormat:@"Repeat cache for key(%@). Check you code.", key];
+        @throw [NSException exceptionWithName:@"NSGenericException"
+                                       reason:reason
+                                     userInfo:nil];
+    }
+#endif
     if (!d->cache_sql) {
         d->cache_sql = [NSMutableDictionary dictionaryWithCapacity:10];
     }

@@ -133,26 +133,33 @@ public:
     /// same as equalTo.
     BuildSql& et(id value){return equalTo(value);}
     BuildSql& equalTo(id value);
+    /// append '= ?', '?' is placeholder.
+    BuildSql& et();
 
     /// same as notEqualTo.
     BuildSql& net(id value){return notEqualTo(value);}
     BuildSql& notEqualTo(id value);
+    BuildSql& net();
 
     /// same as greaterThan.
     BuildSql& gt(id value){return greaterThan(value);}
     BuildSql& greaterThan(id value);
+    BuildSql& gt();
 
     /// same as greaterThanOrEqualTo.
     BuildSql& ngt(id value){return greaterThanOrEqualTo(value);}
     BuildSql& greaterThanOrEqualTo(id value);
+    BuildSql& nlt();
 
     /// same as lessThan.
     BuildSql& lt(id value){return lessThan(value);}
     BuildSql& lessThan(id value);
+    BuildSql& lt();
 
     /// same as lessThanOrEqualtTo.
     BuildSql& nlt(id value){return lessThanOrEqualtTo(value);}
     BuildSql& lessThanOrEqualtTo(id value);
+    BuildSql& ngt();
 
     BuildSql& And(id valueOrField); // like and
     BuildSql& Or(NSString *feild);  // like or
@@ -208,7 +215,7 @@ public:
 #pragma mark - unsql
     bool isFinished() const;
     void end();
-    void reset();
+    BuildSql& reset();
     NSString* cacheForKey(NSString *key) const;
     void setCacheForKey(NSString *key);
     bool cached(NSString *key) const;
@@ -266,11 +273,11 @@ BuildSql& BuildSql::select_extend(NSString *field, Args... args)
 #pragma mark - Useful
 
 #ifndef bs_set_cache
-#define bs_set_cache(obj, number) obj.setCacheForKey([@(__PRETTY_FUNCTION__) stringByAppendingString:@(#number)])
+#define bs_set_cache(obj, number) (obj).setCacheForKey([@(__PRETTY_FUNCTION__) stringByAppendingString:@(#number)])
 #endif
 
 #ifndef bs_get_cache
-#define bs_get_cache(obj, number) obj.cacheForKey([@(__PRETTY_FUNCTION__) stringByAppendingString:@(#number)])
+#define bs_get_cache(obj, number) (obj).cacheForKey([@(__PRETTY_FUNCTION__) stringByAppendingString:@(#number)])
 #endif
 
 #endif /* BuildSql_hpp */
