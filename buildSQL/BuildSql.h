@@ -219,6 +219,7 @@ public:
     NSString* cacheForKey(NSString *key) const;
     void setCacheForKey(NSString *key);
     bool cached(NSString *key) const;
+    NSDictionary<NSString *, NSString *> *caches() const;
 protected:
     BuildSql& field(){return *this;}
     BuildSql& field_impl(NSString *field, bool hasNext);

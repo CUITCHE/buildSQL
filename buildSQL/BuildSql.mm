@@ -827,6 +827,11 @@ bool BuildSql::cached(NSString *key) const
     return [d->cache_sql objectForKey:key] != nil;
 }
 
+NSDictionary<NSString *, NSString *> *BuildSql::caches() const
+{
+    return d->cache_sql.copy;
+}
+
 @implementation NSMutableString (append)
 
 - (NSMutableString *)append:(NSString *)aString
