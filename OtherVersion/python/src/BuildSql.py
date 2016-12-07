@@ -3,12 +3,13 @@ Created on 2016年12月7日
 
 @author: hejunqiu
 '''
+from __builtin__ import int, str
 
 class BuildSql(object):
     '''
     Build a sql by BuildSql.
     '''
-
+    
     class Order:
         # 升序
         ASC = 0,
@@ -34,28 +35,26 @@ class BuildSql(object):
         Constructor method.
         @param placeholder: Default is '?', You can set it to any.
         '''
-        self.placeholder = placeholder
+        self._placeholder = placeholder
         self._sql = list()
-        
-    def fromtable(self, tables):
+    
+    def select(self, *fields):
+        self._selectedArgs = 1
+        for field in fields:
+            self.__append(field).__append(',')
+        self._sql.pop()
+        return self
+    
+    def fromtable(self, *tables):
         '''
         Part sql syntax, like SELECT *[ FROM ]table
-        @param tables: The names of table. one or more. Support type:set(str), list(str) or str
+        @param tables: The names of table. one or more. 
         @return: self
         '''
-        assert tables.type in (set, list, str), 'param[tables] must be a set type.'
-        assert len(tables), 'The length of tables must not be 0.'
         self.__append(' FROM ')
-        if tables is str:
-            self.__append(tables)
-        else:
-            first = True
-            for table in tables:
-                if first:
-                    self.__append(table)
-                    first = True
-                else:
-                    self.__append(',').__append(table)
+        for table in tables:
+            self.__append(table).__append(',')
+        self._sql.pop()
         return self
     
     def where(self, field):
@@ -80,10 +79,63 @@ class BuildSql(object):
     def insertInto(self, table):
         assert len(self.sql) == 0, 'SQL:INSERT INTO must start firstly.'
         self.__append('INSERT INTO ').__append(table)
+        self.scopes()
+        self._inserting = True
         return self
     
-    def select(self):
-        pass
+    def values(self):
+        if not self._inserting:
+            self._insertCount = 0
+            return
+        assert self._insertCount, 'SQL: No matched number of placeholder.'
+        self.scopee()
+        self.__append(' VALUES(').__append(self._placeholder)
+        while (--self._insertCount):
+            self.__append(',').__append(self._placeholder)
+        self.__append(')')
+        self.end()
+        return
+    
+    def scopes(self):
+        self.__append('(')
+        return self
+    
+    def scopee(self):
+        self.__append(')')
+        return self
+    
+    def value(self, val):
+        if val.type in (int,float):
+            self.__append(str(val))
+        else:
+            self.__append(val)
+        return self
+    
+    def orderBy(self, field, order = BuildSql.Order.ASC):
+        self.__append(' ORDER BY ').__append(field)
+        if order == BuildSql.Order.DESC:
+            self.__append(' DESC')
+        return self
+    
+    def create(self, table):
+        assert self._creating, '''SQL: sql syntax error. You are already in creat-funcational. And you couldn't use 'creat' again.'''
+        self.__append('CREATE TABLE IF NOT EXISTS ').__append(table)
+        self._creating = True
+        return self
+    
+    def field(self, *fields):
+        
+        return self
+    
+    
+    def end(self):
+        assert self._isFinished, 'SQL: has finished!'
+        if self._creating:
+            self.scopee()
+            self._creating = False
+        self.__append(';')
+        self._isFinished = True
+    
     def __append(self, sql):
         self._sql.append(sql)
         return self
