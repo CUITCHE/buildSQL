@@ -33,7 +33,10 @@ struct SqlMakerPrivateData
 
     SqlMakerPrivateData()
     :sql([NSMutableString stringWithCapacity:40])
-    {}
+    {
+        clean();
+    }
+
     void clean() {
         isFinished = 0;
         insertCount = 0;

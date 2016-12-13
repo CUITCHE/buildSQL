@@ -78,6 +78,9 @@ typedef NS_ENUM(NSInteger, SqlJoinType) {
 typedef struct {
     uint32_t wholeMax : 16;
     uint32_t rightMax : 16;
+#if __LP64__
+    uint32_t reserved;
+#endif
 }__capacity;
 
 NS_INLINE uint32_t bs_whole(__capacity c) {return (((uint32_t)c.wholeMax)<<16) | c.rightMax;}
