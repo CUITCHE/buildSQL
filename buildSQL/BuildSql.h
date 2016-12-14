@@ -150,7 +150,7 @@ public:
     BuildSql& gt();
 
     /// same as greaterThanOrEqualTo.
-    BuildSql& ngt(id value){return greaterThanOrEqualTo(value);}
+    BuildSql& nlt(id value){return greaterThanOrEqualTo(value);}
     BuildSql& greaterThanOrEqualTo(id value);
     BuildSql& nlt();
 
@@ -160,7 +160,7 @@ public:
     BuildSql& lt();
 
     /// same as lessThanOrEqualtTo.
-    BuildSql& nlt(id value){return lessThanOrEqualtTo(value);}
+    BuildSql& ngt(id value){return lessThanOrEqualtTo(value);}
     BuildSql& lessThanOrEqualtTo(id value);
     BuildSql& ngt();
 
