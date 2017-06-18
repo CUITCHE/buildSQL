@@ -220,7 +220,7 @@ public:
     void end();
     BuildSql& reset();
     NSString* cacheForKey(NSString *key) const;
-    void setCacheForKey(NSString *key);
+    NSString* setCacheForKey(NSString *key);
     bool cached(NSString *key) const;
     NSDictionary<NSString *, NSString *> *caches() const;
 protected:
@@ -277,11 +277,11 @@ BuildSql& BuildSql::select_extend(NSString *field, Args... args)
 #pragma mark - Useful
 
 #ifndef bs_set_cache
-#define bs_set_cache(obj, number) (obj).setCacheForKey([@(__PRETTY_FUNCTION__) stringByAppendingString:@(#number)])
+#define bs_set_cache(obj, lineOffset) (obj).setCacheForKey(@(__LINE__ + lineOffset).stringValue)
 #endif
 
 #ifndef bs_get_cache
-#define bs_get_cache(obj, number) (obj).cacheForKey([@(__PRETTY_FUNCTION__) stringByAppendingString:@(#number)])
+#define bs_get_cache(obj) obj.cacheForKey(@(__LINE__).stringValue)
 #endif
 
 #endif /* BuildSql_hpp */

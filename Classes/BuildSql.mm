@@ -21,12 +21,12 @@ struct SqlMakerPrivateData
     uint32_t deleting    : 1;
     uint32_t selecting   : 1;
     uint32_t creating    : 1;
-    uint32_t operation   : 1; // 上一个操作是=,<>,>,<,<=,>=等操作
+    uint32_t operation   : 1;       // 上一个操作是=,<>,>,<,<=,>=等操作
     uint32_t creatingHasColumn : 1; // 已经添加一列了
     uint32_t betweening  : 1;
-    uint32_t selectedArgs: 1; // 已经在select中插入了筛选列
-    uint32_t joining     : 1; // 正在进行join操作
-    uint32_t insertCount : 5; // 31个参数最多
+    uint32_t selectedArgs: 1;       // 已经在select中插入了筛选列
+    uint32_t joining     : 1;       // 正在进行join操作
+    uint32_t insertCount : 21;      // 以后这个参数表示的大小可能会变化
 #if __LP64__
     uint32_t reserved;
 #endif
@@ -38,18 +38,18 @@ struct SqlMakerPrivateData
     }
 
     void clean() {
-        isFinished = 0;
-        insertCount = 0;
-        updating = 0;
-        deleting = 0;
-        selecting = 0;
-        creating = 0;
-        operation = 0;
-        insertCount = 0;
-        creatingHasColumn = 0;
-        betweening = 0;
-        selectedArgs = 0;
-        joining = 0;
+        isFinished          = 0;
+        insertCount         = 0;
+        updating            = 0;
+        deleting            = 0;
+        selecting           = 0;
+        creating            = 0;
+        operation           = 0;
+        insertCount         = 0;
+        creatingHasColumn   = 0;
+        betweening          = 0;
+        selectedArgs        = 0;
+        joining             = 0;
         [sql setString:@""];
     }
 };
@@ -809,7 +809,7 @@ NSString* BuildSql::cacheForKey(NSString *key) const
     } while (0);
     return sql;
 }
-void BuildSql::setCacheForKey(NSString *key)
+NSString* BuildSql::setCacheForKey(NSString *key)
 {
 #if defined(__OBJC__)
     if (cached(key)) {
@@ -822,7 +822,9 @@ void BuildSql::setCacheForKey(NSString *key)
     if (!d->cache_sql) {
         d->cache_sql = [NSMutableDictionary dictionaryWithCapacity:10];
     }
-    [d->cache_sql setObject:d->sql.copy forKey:key];
+    NSString *object = d->sql.copy;
+    [d->cache_sql setObject:object forKey:key];
+    return object.copy;
 }
 
 bool BuildSql::cached(NSString *key) const
