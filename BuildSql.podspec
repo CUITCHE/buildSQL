@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "BuildSql"
-  s.version      = "1.0.2"
+  s.version      = "1.1.0"
   s.summary      = "Build a SQL statement by code based on Objective-C++."
 
   s.homepage     = "https://github.com/CUITCHE/buildSQL"
@@ -13,5 +13,5 @@ Pod::Spec.new do |s|
   s.public_header_files = 'Classes/BuildSql.h'
   s.framework    = 'Foundation'
   s.library      = 'c++'
-
+  # use '--skip-import-validation' to validate.
 end
